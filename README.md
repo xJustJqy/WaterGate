@@ -1,5 +1,5 @@
 # WaterGate
-> This is stable and fast plugin for pmmp that allows server connect to WaterDog plugin WaterGate. It make easier communication between server. Includes API fur custom packets, transferring players and more 
+> This is stable and fast plugin for pmmp that allows server connect to WaterDog plugin StarGate. It make easier communication between server. Includes API fur custom packets, transferring players and more 
 
 ## 🎯Features:
 - Fast communication between servers
