@@ -1,7 +1,5 @@
-# WaterGate-Atlantis
-<a align="center" href="https://discord.gg/VsHXm2M"><img src="https://discordapp.com/api/guilds/574240965351571477/embed.png" alt="Discord server"/> [![](https://poggit.pmmp.io/shield.state/WaterGate-Atlantis)](https://poggit.pmmp.io/p/WaterGate-Atlantis)
+# WaterGate
 > This is stable and fast plugin for pmmp that allows server connect to WaterDog plugin WaterGate. It make easier communication between server. Includes API fur custom packets, transferring players and more 
-</br> Download [here](https://poggit.pmmp.io/ci/Alemiz112/WaterGate-Atlantis/)!
 
 ## 🎯Features:
 - Fast communication between servers
@@ -11,13 +9,13 @@
 More features will be added very soon
 
 ## 🔧API
-You can access WaterGate-Atlantis by ``WaterGate::getInstance()``
+You can access WaterGate by ``WaterGate::getInstance()``
 #### Avalibe Functions
 - ``RegisterPacket(WaterGatePacket packet)`` Really simple method for registring Packet
 - ``putPacket(WaterGatePacket packet, string $client)`` This allows you to send packet. Packet must be registered first
 - ``transferPlayer(Player player, string server, string $client)`` This we use to transfer Player between servers
 - ``kickPlayer(Player player, string reason, string $client)``  Kick player from any server connected to WaterGate network
-- ``isOnline(Player player, string $client)`` Check if player is online. Sends back response 'true!server' or 'false'. Examples [here](https://github.com/Alemiz112/WaterGate-Universe/tree/master/src/tests#playeronline-response).
+- ``isOnline(Player player, string $client)`` Check if player is online. Sends back response 'true!server' or 'false'. 
 - ``forwardPacket(string $destClient, string $localClient, WaterGatePacket $packet)`` Using ForwardPacket you can forward packet to other client/server
 - ``addServer(string $address, string $port, string $name, string $client)`` Add server to list and allows players to transfer
 - ``removeServer(string $name, string  $client)`` Remove server from server list
@@ -25,12 +23,11 @@ You can access WaterGate-Atlantis by ``WaterGate::getInstance()``
 Client variable in API is used to specify destination proxy (if more instances are used). It is not important to define it, if one one proxy is used.
 ##### Example:
 ```php
-$player = PLUGIN::getInstance()->getPlayer("alemiz003");
+$player = PLUGIN::getInstance()->getPlayer("xJustJqy");
 $server = "lobby2";
 
 WaterGate::getInstance()->transferPlayer($player, $server);
 ```
-To more examples look [here](https://github.com/Alemiz112/WaterGate-Atlantis/tree/master/src/tests)!
 
 #### 📦Packet Handling
 Received Packets are handled by ``CustomPacketEvent``. Official Packets are handled (if needed) automaticly</br></br>
@@ -47,15 +44,13 @@ PHP allows you to use simple closures to handle result:
 $closure = function ($response){
     WaterGate::getInstance()->getLogger()->info("§a".$response);
 };
-WaterGate::getInstance()->isOnline("alemiz0003", $closure);
+WaterGate::getInstance()->isOnline("xJustJqy", $closure);
 ``` 
-For more info please consider looking [here](https://github.com/Alemiz112/WaterGate-Universe/tree/master/src/tests).
 
 #### ⚙️Creating Own Packets
-For better understanding please read [WaterGatePacket](https://github.com/Alemiz112/WaterGate-Atlantis/blob/master/src/alemiz/sga/packets/WaterGatePacket.php) and [WelcomePacket](https://github.com/Alemiz112/WaterGate-Atlantis/blob/master/src/alemiz/sga/packets/WelcomePacket.php)
+For better understanding please read [WaterGatePacket](https://github.com/xJustJqy/WaterGate/blob/master/src/xJustJqy/wg/packets/WaterGatePacket.php) and [WelcomePacket](https://github.com/xJustJqy/WaterGate/blob/master/src/xJustJqy/wg/packets/WelcomePacket.php)
 #### Docker Implementation
 If you have servers inside Docker container this is for you. WaterGate allows you to create/remove/start/stop any container. Using `ServerManagePacket` you can set container exposed ports and env. variables too.
- Working example can be found [here](https://github.com/Alemiz112/WaterGate-Universe/tree/master/src/tests#docker-implementation-example).
 #### Convertor
 Convertor is used for ``encoding`` and ``decoding`` packets. We can use it for static and nonstatic usage</br>
 Functions:</br>
