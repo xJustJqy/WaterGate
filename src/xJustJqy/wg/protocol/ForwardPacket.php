@@ -1,0 +1,116 @@
+<?php
+/*
+ * Copyright 2020 Alemiz
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+namespace xJustJqy\wg\protocol;
+
+use xJustJqy\wg\codec\WaterGatePacketHandler;
+use xJustJqy\wg\codec\WaterGatePackets;
+use xJustJqy\wg\protocol\types\PacketHelper;
+
+class ForwardPacket extends WaterGatePacket
+{
+
+    /**
+     * @param string $clientName
+     * @param WaterGatePacket $packet
+     * @return ForwardPacket
+     */
+    public static function from(string $clientName, WaterGatePacket $packet): ForwardPacket
+    {
+        $forwardPacket = new ForwardPacket();
+        $forwardPacket->setClientName($clientName);
+
+        $unknownPacket = new UnknownPacket();
+        $unknownPacket->setPacketId($packet->getPacketId());
+        $packet->rewind();
+        $packet->encodePayload();
+        $unknownPacket->setPayload($packet->getBuffer());
+
+        $forwardPacket->setPacket($unknownPacket);
+        return $forwardPacket;
+    }
+
+    /** @var string */
+    private string $clientName;
+    /** @var UnknownPacket */
+    public UnknownPacket $packet;
+
+    public function encodePayload(): void
+    {
+        PacketHelper::writeString($this, $this->clientName);
+        $this->putByte($this->packet->getPacketId());
+        PacketHelper::writeByteArray($this, $this->packet->getPayload());
+    }
+
+    public function decodePayload(): void
+    {
+        $this->clientName = PacketHelper::readString($this);
+
+        $packet = new UnknownPacket();
+        $packet->setPacketId($this->getByte());
+        $packet->setPayload(PacketHelper::readByteArray($this));
+        $this->packet = $packet;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPacketId(): int
+    {
+        return WaterGatePackets::FORWARD_PACKET;
+    }
+
+    /**
+     * @param WaterGatePacketHandler $handler
+     * @return bool
+     */
+    public function handle(WaterGatePacketHandler $handler): bool
+    {
+        return $handler->handleForwardPacket($this);
+    }
+
+    /**
+     * @param string $clientName
+     */
+    public function setClientName(string $clientName): void
+    {
+        $this->clientName = $clientName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getClientName(): string
+    {
+        return $this->clientName;
+    }
+
+    /**
+     * @param UnknownPacket $packet
+     */
+    public function setPacket(UnknownPacket $packet): void
+    {
+        $this->packet = $packet;
+    }
+
+    /**
+     * @return UnknownPacket
+     */
+    public function getPacket(): UnknownPacket
+    {
+        return $this->packet;
+    }
+}
