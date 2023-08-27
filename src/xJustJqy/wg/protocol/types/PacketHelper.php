@@ -40,7 +40,7 @@ class PacketHelper
      */
     public static function readByteArray(WaterGatePacket $buf): string
     {
-        return $buf->get($buf->getInt());
+        return $buf->getBuffer();
     }
 
     /**

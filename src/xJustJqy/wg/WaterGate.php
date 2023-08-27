@@ -17,15 +17,23 @@
 namespace xJustJqy\wg;
 
 use xJustJqy\wg\client\WaterGateClient;
+use xJustJqy\wg\client\WaterDogPlayer;
 use xJustJqy\wg\events\ClientCreationEvent;
 use xJustJqy\wg\protocol\ServerInfoRequestPacket;
 use xJustJqy\wg\protocol\ServerTransferPacket;
 use xJustJqy\wg\protocol\types\HandshakeData;
 use xJustJqy\wg\utils\PacketResponse;
+use pocketmine\event\player\PlayerCreationEvent;
+use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;
+use pocketmine\event\Listener;
+use pocketmine\network\mcpe\JwtUtils;
+use xJustJqy\wg\codec\WaterGatePacketHandler;
+use xJustJqy\wg\protocol\UnknownPacket;
 
-class WaterGate extends PluginBase
+class WaterGate extends PluginBase implements Listener
 {
 
     public const WaterGate_VERSION = 2;
@@ -60,12 +68,70 @@ class WaterGate extends PluginBase
         foreach ($this->getConfig()->get("connections") as $clientName => $ignore) {
             $this->createClient($clientName);
         }
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
     }
 
     public function onDisable(): void
     {
         foreach ($this->clients as $client) {
             $client->shutdown();
+        }
+    }
+
+    /** @var WaterGatePacketHandler[] */
+    private static array $handlers = [];
+
+    public static function addHandler(WaterGatePacketHandler $handle)
+    {
+        self::$handlers[] = $handle;
+    }
+
+    public static function onData(UnknownPacket $data)
+    {
+        foreach (self::$handlers as $handler) {
+            $handler->handleUnknown($data);
+        }
+    }
+
+    private static array $toFix = [];
+
+    /**
+     * @priority LOWEST
+     */
+    public function playerOverride(PlayerCreationEvent $event)
+    {
+        $event->setPlayerClass(WaterDogPlayer::class);
+    }
+
+    /** 
+     * @priority LOWEST
+     */
+    public function onLogin(\pocketmine\event\player\PlayerLoginEvent $event)
+    {
+        $player = $event->getPlayer();
+        $data = $this->getServer()->getOfflinePlayerData($player->getName());
+        if (in_array($player->getNetworkSession()->getPort(), array_keys(self::$toFix))) {
+            $fix = self::$toFix[$player->getNetworkSession()->getPort()];
+            $player->fixXUID($fix[0]);
+            $player->fixIP($fix[1]);
+            unset(self::$toFix[$player->getNetworkSession()->getPort()]);
+        }
+        if (!is_null($data) && $data->getString(Player::TAG_LAST_KNOWN_XUID) !== $player->getXuid()) {
+            $event->setKickMessage("XUID does not match (possible impersonation attempt)");
+        }
+    }
+
+    /** 
+     * @priority LOWEST
+     */
+    public function dataPacketRecieve(DataPacketReceiveEvent $event)
+    {
+        $pk = $event->getPacket();
+        if ($pk instanceof LoginPacket) {
+            $parsed = JwtUtils::parse($pk->clientDataJwt);
+            if (isset($parsed[1]["Waterdog_XUID"])) {
+                self::$toFix[$event->getOrigin()->getPort()] = [$parsed[1]["Waterdog_XUID"], $parsed[1]["Waterdog_IP"]];
+            }
         }
     }
 

@@ -27,6 +27,7 @@ use function socket_read;
 use function strlen;
 use function substr;
 use const PHP_BINARY_READ;
+use pmmp\thread\Thread as PTHREAD;
 
 class WaterGateConnection extends Thread
 {
@@ -81,7 +82,7 @@ class WaterGateConnection extends Thread
 
         $this->input = new ThreadSafeArray();
         $this->output = new ThreadSafeArray();
-        $this->start(PTHREADS_INHERIT_NONE);
+        $this->start(PTHREAD::INHERIT_NONE);
     }
 
     public function onRun(): void
@@ -96,7 +97,7 @@ class WaterGateConnection extends Thread
         //set_error_handler([$this, 'errorHandler'], E_ALL);
 
         $this->state = self::STATE_CONNECTING;
-        $this->logger->debug("Connecting to WaterGate server " . $this->address);
+        $this->logger->debug("Connecting to StarGate server " . $this->address);
 
         if (!$this->WaterGateSocket->connect()) {
             $this->state = self::STATE_DISCONNECTED;
@@ -129,7 +130,7 @@ class WaterGateConnection extends Thread
 
         if ($error === 10057 || $error === 10054 || $error === 10053) {
             error:
-            $this->getLogger()->info("§cConnection with WaterGate server has disconnected unexpectedly!");
+            $this->getLogger()->info("§cConnection with StarGate server has disconnected unexpectedly!");
             $this->close();
             return;
         }
@@ -226,7 +227,7 @@ class WaterGateConnection extends Thread
             return;
         }
         $this->state = self::STATE_DISCONNECTED;
-        $this->logger->debug("Closed WaterGate session " . $this->address);
+        $this->logger->debug("Closed StarGate session " . $this->address);
     }
 
     public function shutdown(): void
@@ -331,7 +332,7 @@ class WaterGateConnection extends Thread
 
     public function getThreadName(): string
     {
-        return "WaterGate-Atlantis";
+        return "WaterGate";
     }
 
     public function setGarbage(): void

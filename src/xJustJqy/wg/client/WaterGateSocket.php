@@ -24,8 +24,9 @@ use function socket_strerror;
 use const AF_INET;
 use const SOCK_STREAM;
 use const SOL_TCP;
+use pmmp\thread\ThreadSafe;
 
-class WaterGateSocket
+class WaterGateSocket extends ThreadSafe
 {
 
     /** @var WaterGateConnection */
@@ -52,7 +53,7 @@ class WaterGateSocket
     /**
      * @return bool
      */
-    public function connect(): bool
+    public function connect(int $attempts = 0): bool
     {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         try {
@@ -66,9 +67,8 @@ class WaterGateSocket
             socket_set_nonblock($socket);
             socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
         } catch (Exception $e) {
-            $this->conn->getLogger()->error("Can not connect to WaterGate server!");
-            $this->conn->getLogger()->logException($e);
-            return false;
+            $this->conn->getLogger()->debug("Failed to connect to StarGate server! Attempt #" . $attempts + 1);
+            return $this->connect($attempts + 1);
         }
 
         $this->conn->socket = $socket;

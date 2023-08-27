@@ -18,6 +18,10 @@ namespace xJustJqy\wg\handler;
 
 use xJustJqy\wg\protocol\DisconnectPacket;
 use xJustJqy\wg\protocol\UnknownPacket;
+use xJustJqy\wg\client\WaterGateConnection;
+use xJustJqy\wg\protocol\ServerHandshakePacket;
+use xJustJqy\wg\protocol\ForwardPacket;
+use xJustJqy\wg\WaterGate;
 
 class CommonSessionHandler extends SessionHandler
 {
@@ -29,6 +33,24 @@ class CommonSessionHandler extends SessionHandler
     public function handleDisconnect(DisconnectPacket $packet): bool
     {
         $this->session->onDisconnect($packet->getReason());
+        return true;
+    }
+
+    public function handleForwardPacket(ForwardPacket $packet): bool
+    {
+        WaterGate::onData($packet->getPacket());
+        return true;
+    }
+
+    /**
+     * @param ServerHandshakePacket $packet
+     * @return bool
+     */
+    public function handleServerHandshake(ServerHandshakePacket $packet): bool
+    {
+        $this->session->getClient()->onSessionAuthenticated();
+        $this->session->getConnection()->setState(WaterGateConnection::STATE_AUTHENTICATED);
+        $this->session->setPacketHandler(new ConnectedPacketHandler($this->session));
         return true;
     }
 

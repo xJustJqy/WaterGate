@@ -66,7 +66,7 @@ class ClientSession
     {
         $this->client = $client;
         $server = $client->getServer();
-        $this->packetHandler = new HandshakePacketHandler($this);
+        $this->packetHandler = new \xJustJqy\wg\handler\CommonSessionHandler($this);
         $this->connection = new WaterGateConnection($server->getLogger(), $address, $port, $client->getHandshakeData());
     }
 
@@ -231,6 +231,7 @@ class ClientSession
         $this->getLogger()->info("§bWaterGate server has been disconnected! Reason: " . $reason);
         $this->client->onSessionDisconnected();
         $this->close();
+        $this->client->connect();
     }
 
     /**
